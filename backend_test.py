@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import json
 
 class EnhancedAuthTester:
-    def __init__(self, base_url="https://network-checkpoint.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://checkpoint-tracker.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.session_token = None

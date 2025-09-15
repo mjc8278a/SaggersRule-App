@@ -7,7 +7,7 @@ if [ "$1" = "preview" ]; then
     export FRONTEND_PORT=3000
     sudo supervisorctl restart frontend
     echo "✅ Frontend restarted on port 3000"
-    echo "🔗 Preview URL: https://network-checkpoint.preview.emergentagent.com"
+    echo "🔗 Preview URL: https://checkpoint-tracker.preview.emergentagent.com"
 elif [ "$1" = "isp" ]; then
     echo "🏠 Configuring for ISP ACCESS mode (port 3200)..."
     export FRONTEND_PORT=3200
