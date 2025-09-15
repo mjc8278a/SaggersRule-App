@@ -537,7 +537,26 @@ async def create_status_check(
     input: StatusCheckCreate, 
     request: Request
 ):
-    current_user = await get_current_user_from_session(request)
+    # Try session-based auth first, then fall back to JWT
+    try:
+        current_user = await get_current_user_from_session(request)
+    except HTTPException:
+        # Fallback to JWT token auth
+        auth_header = request.headers.get('authorization', '')
+        if not auth_header.startswith('Bearer '):
+            raise HTTPException(status_code=401, detail="No valid authentication")
+        
+        token = auth_header.split(' ')[1]
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("sub")
+            user_doc = await db.users.find_one({"id": user_id})
+            if not user_doc:
+                raise HTTPException(status_code=401, detail="User not found")
+            current_user = User(**user_doc)
+        except:
+            raise HTTPException(status_code=401, detail="Invalid authentication")
+    
     status_dict = input.dict()
     status_dict["user_id"] = current_user.id
     status_obj = StatusCheck(**status_dict)
@@ -546,7 +565,26 @@ async def create_status_check(
 
 @api_router.get("/status", response_model=List[StatusCheck])
 async def get_status_checks(request: Request):
-    current_user = await get_current_user_from_session(request)
+    # Try session-based auth first, then fall back to JWT
+    try:
+        current_user = await get_current_user_from_session(request)
+    except HTTPException:
+        # Fallback to JWT token auth
+        auth_header = request.headers.get('authorization', '')
+        if not auth_header.startswith('Bearer '):
+            raise HTTPException(status_code=401, detail="No valid authentication")
+        
+        token = auth_header.split(' ')[1]
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("sub")
+            user_doc = await db.users.find_one({"id": user_id})
+            if not user_doc:
+                raise HTTPException(status_code=401, detail="User not found")
+            current_user = User(**user_doc)
+        except:
+            raise HTTPException(status_code=401, detail="Invalid authentication")
+    
     # Only return status checks for the current user
     status_checks = await db.status_checks.find({"user_id": current_user.id}).to_list(1000)
     return [StatusCheck(**status_check) for status_check in status_checks]
