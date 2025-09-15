@@ -239,6 +239,9 @@ const AuthForm = () => {
       const result = await login(email, password);
       if (!result.success) {
         setError(result.error);
+      } else {
+        // Login successful - user will be redirected by ProtectedRoute
+        setSuccess("Login successful! Redirecting...");
       }
     } else if (authMode === "forgot") {
       const result = await forgotPassword(email);
