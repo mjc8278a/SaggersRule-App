@@ -192,7 +192,7 @@ class AuthenticationAPITester:
             f"Create Status Check - No Auth - {client_name}",
             "POST",
             "status",
-            401,  # Should require authentication
+            403,  # FastAPI returns 403 for unauthenticated requests
             data={"client_name": client_name}
         )
         return success
@@ -219,7 +219,7 @@ class AuthenticationAPITester:
             "Get Status Checks - No Auth",
             "GET",
             "status",
-            401  # Should require authentication
+            403  # FastAPI returns 403 for unauthenticated requests
         )
         return success
 
