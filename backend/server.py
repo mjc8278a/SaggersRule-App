@@ -1,6 +1,6 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Response, Request
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Response, Request, UploadFile, File, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -16,6 +16,10 @@ from passlib.context import CryptContext
 import jwt
 from jwt import PyJWTError
 import secrets
+import io
+
+# Import NAS Vault Service
+from vault_service import nas_vault, check_nas_connectivity
 
 
 ROOT_DIR = Path(__file__).parent
