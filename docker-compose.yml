@@ -1,0 +1,145 @@
+version: '3.8'
+
+services:
+  # MinIO Object Storage (NAS Vault)
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: network-monitor-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"   # MinIO API
+      - "9001:9001"   # MinIO Console
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: secure_admin_password_2024
+      MINIO_BROWSER_REDIRECT_URL: http://192.168.42.56:9001
+    volumes:
+      - minio_data:/data
+      - minio_config:/root/.minio
+    command: server /data --console-address ":9001"
+    networks:
+      - network-monitor
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: network-monitor-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin_password_2024
+      MONGO_INITDB_DATABASE: network_monitor
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - network-monitor
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: network-monitor-backend
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      MONGO_URL: "mongodb://admin:admin_password_2024@mongodb:27017/network_monitor?authSource=admin"
+      DB_NAME: "network_monitor"
+      CORS_ORIGINS: "*"
+      JWT_SECRET: "your-super-secret-jwt-key-change-in-production-2024"
+      # NAS Vault Configuration
+      MINIO_ENDPOINT: "minio:9000"
+      MINIO_ACCESS_KEY: "admin"
+      MINIO_SECRET_KEY: "secure_admin_password_2024"
+      MINIO_USE_SSL: "false"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - network-monitor
+    volumes:
+      - ./backend:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: network-monitor-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"   # Standard React port
+      - "3200:3200"   # Your preferred ISP port
+    environment:
+      REACT_APP_BACKEND_URL: "http://192.168.42.56:8001"
+      WDS_SOCKET_PORT: "443"
+      PORT: "3000"
+      # Enable both ports for flexibility
+      ADDITIONAL_PORT: "3200"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - network-monitor
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy (Optional but recommended)
+  nginx:
+    image: nginx:alpine
+    container_name: network-monitor-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "3200:3200"   # Your ISP port
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - network-monitor
+
+networks:
+  network-monitor:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  minio_data:
+    driver: local
+  minio_config:
+    driver: local
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
