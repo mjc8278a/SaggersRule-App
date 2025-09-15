@@ -593,11 +593,230 @@ async def get_status_checks(request: Request):
     status_checks = await db.status_checks.find({"user_id": current_user.id}).to_list(1000)
     return [StatusCheck(**status_check) for status_check in status_checks]
 
-@api_router.get("/status/all", response_model=List[StatusCheck])
-async def get_all_status_checks():
-    """Public endpoint to view all status checks (for demo purposes)"""
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
+# NAS Vault API Endpoints
+@api_router.post("/vault/profile-picture")
+async def upload_profile_picture_to_vault(
+    file: UploadFile = File(...),
+    request: Request = None,
+    background_tasks: BackgroundTasks = BackgroundTasks()
+):
+    """Upload profile picture to NAS vault"""
+    current_user = await get_current_user_info(request)
+    user_id = current_user.id
+    
+    try:
+        result = await nas_vault.upload_profile_picture(user_id, file)
+        
+        # Update user record with profile picture info
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": {
+                "profile_picture": result["object_name"],
+                "profile_picture_updated": datetime.now(timezone.utc)
+            }}
+        )
+        
+        return {
+            "status": "success",
+            "message": "Profile picture uploaded to NAS vault",
+            "data": result
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/vault/documents")
+async def upload_document_to_vault(
+    file: UploadFile = File(...),
+    category: str = "general",
+    request: Request = None
+):
+    """Upload document to NAS vault"""
+    current_user = await get_current_user_info(request)
+    user_id = current_user.id
+    
+    try:
+        result = await nas_vault.upload_document(user_id, file, category)
+        
+        return {
+            "status": "success", 
+            "message": "Document uploaded to NAS vault",
+            "data": result
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/vault/status/{status_id}/attachments")
+async def upload_status_attachment_to_vault(
+    status_id: str,
+    file: UploadFile = File(...),
+    request: Request = None
+):
+    """Upload status check attachment to NAS vault"""
+    current_user = await get_current_user_info(request)
+    user_id = current_user.id
+    
+    try:
+        result = await nas_vault.upload_status_attachment(user_id, status_id, file)
+        
+        # Link attachment to status check
+        await db.status_checks.update_one(
+            {"id": status_id, "user_id": user_id},
+            {"$push": {
+                "attachments": {
+                    "object_name": result["object_name"],
+                    "bucket": result["bucket"],
+                    "filename": file.filename,
+                    "size": result["size"],
+                    "nas_location": result["nas_location"],
+                    "uploaded_at": result["upload_time"]
+                }
+            }}
+        )
+        
+        return {
+            "status": "success",
+            "message": "Status attachment uploaded to NAS vault", 
+            "data": result
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/vault/files")
+async def list_vault_files(
+    data_type: Optional[str] = None,
+    category: Optional[str] = None, 
+    limit: int = 100,
+    request: Request = None
+):
+    """List user files from NAS vault"""
+    current_user = await get_current_user_info(request)
+    user_id = current_user.id
+    
+    try:
+        files = await nas_vault.list_user_files(user_id, data_type, category, limit)
+        
+        return {
+            "status": "success",
+            "data": {
+                "files": files,
+                "total_count": len(files),
+                "user_id": user_id,
+                "nas_endpoint": nas_vault.minio_endpoint
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/vault/download")
+async def download_file_from_vault(
+    bucket: str,
+    object_name: str,
+    request: Request = None
+):
+    """Download file from NAS vault"""
+    current_user = await get_current_user_info(request)
+    user_id = current_user.id
+    
+    try:
+        file_data = await nas_vault.download_file(user_id, bucket, object_name)
+        
+        # Extract filename
+        filename = object_name.split('/')[-1]
+        
+        return StreamingResponse(
+            io.BytesIO(file_data),
+            media_type='application/octet-stream',
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/vault/files")
+async def delete_file_from_vault(
+    bucket: str,
+    object_name: str,
+    request: Request = None
+):
+    """Delete file from NAS vault"""
+    current_user = await get_current_user_info(request)
+    user_id = current_user.id
+    
+    try:
+        result = await nas_vault.delete_file(user_id, bucket, object_name)
+        
+        return {
+            "status": "success",
+            "message": "File deleted from NAS vault",
+            "data": result
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/vault/storage/summary")
+async def get_vault_storage_summary(request: Request = None):
+    """Get user storage summary from NAS vault"""
+    current_user = await get_current_user_info(request)
+    user_id = current_user.id
+    
+    try:
+        summary = await nas_vault.get_user_storage_summary(user_id)
+        
+        return {
+            "status": "success",
+            "data": summary
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/vault/backup")
+async def create_user_backup_on_vault(
+    backup_type: str = "manual",
+    request: Request = None,
+    background_tasks: BackgroundTasks = BackgroundTasks()
+):
+    """Create user data backup on NAS vault"""
+    current_user = await get_current_user_info(request)
+    user_id = current_user.id
+    
+    try:
+        # Create backup data (simplified - in production, this would compress user data)
+        backup_data = {
+            "user_id": user_id,
+            "backup_type": backup_type,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "user_data": current_user.dict(),
+            "status_checks_count": await db.status_checks.count_documents({"user_id": user_id})
+        }
+        
+        import json
+        import zipfile
+        import tempfile
+        
+        # Create ZIP backup
+        with tempfile.NamedTemporaryFile() as temp_file:
+            with zipfile.ZipFile(temp_file.name, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                zip_file.writestr("user_data.json", json.dumps(backup_data, indent=2))
+            
+            temp_file.seek(0)
+            backup_bytes = temp_file.read()
+        
+        result = await nas_vault.create_user_backup(user_id, backup_bytes, backup_type)
+        
+        return {
+            "status": "success",
+            "message": "User backup created on NAS vault",
+            "data": result
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.on_event("startup")
 async def startup_event():
