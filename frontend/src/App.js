@@ -32,7 +32,20 @@ const AuthProvider = ({ children }) => {
       setLoading(false);
     };
 
+    // Add axios interceptor for automatic token inclusion
+    const interceptor = axios.interceptors.request.use((config) => {
+      if (token && config.url.includes('/api/')) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
+
     initAuth();
+
+    // Cleanup interceptor on unmount
+    return () => {
+      axios.interceptors.request.eject(interceptor);
+    };
   }, [token]);
 
   const login = async (email, password) => {
