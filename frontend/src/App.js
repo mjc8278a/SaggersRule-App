@@ -199,6 +199,7 @@ const AuthForm = () => {
   const [success, setSuccess] = useState("");
   const [authMode, setAuthMode] = useState("login"); // login, register, forgot
   const { login, register, loginWithGoogle, forgotPassword } = useAuth();
+  const navigate = useNavigate();
 
   const calculateAge = (birthDate) => {
     const today = new Date();
