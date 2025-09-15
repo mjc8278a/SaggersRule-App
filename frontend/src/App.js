@@ -634,7 +634,7 @@ const StatusDashboard = () => {
         {/* Footer */}
         <div className="text-center mt-8 text-gray-500">
           <p>Your personal monitoring dashboard | {statusChecks.length} status checks</p>
-          <p className="text-xs mt-2">Enhanced with Google OAuth, Age & Email Verification</p>
+          <p className="text-xs mt-2">Enhanced with Google OAuth, Age & Email Verification + NAS Vault Storage</p>
         </div>
       </div>
     </div>
