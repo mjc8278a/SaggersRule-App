@@ -521,6 +521,26 @@ const StatusDashboard = () => {
               <p className="text-white font-medium">{user?.email}</p>
             </div>
             <button
+              onClick={() => setActiveView('vault')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeView === 'vault' 
+                  ? 'bg-green-600 text-white' 
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              🏠 NAS Vault
+            </button>
+            <button
+              onClick={() => setActiveView('dashboard')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeView === 'dashboard' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              📊 Dashboard
+            </button>
+            <button
               onClick={logout}
               className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-medium transition-colors"
             >
