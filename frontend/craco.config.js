@@ -6,9 +6,12 @@ const config = {
   disableHotReload: process.env.DISABLE_HOT_RELOAD === 'true',
 };
 
+// Port configuration - defaults to 3200 for ISP access, but can be overridden for preview
+const PORT = process.env.FRONTEND_PORT || process.env.PORT || 3200;
+
 module.exports = {
   devServer: {
-    port: 3200,
+    port: PORT,
     host: '0.0.0.0',
     allowedHosts: 'all',
   },
