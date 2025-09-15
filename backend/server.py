@@ -599,19 +599,33 @@ async def get_all_status_checks():
     status_checks = await db.status_checks.find().to_list(1000)
     return [StatusCheck(**status_check) for status_check in status_checks]
 
+@app.on_event("startup")
+async def startup_event():
+    """Initialize NAS vault system on startup"""
+    try:
+        await nas_vault.initialize_vault()
+        logger.info("✅ NAS Vault System ready!")
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize NAS Vault: {e}")
+
 # Health check endpoint
 @api_router.get("/health")
 async def health_check():
+    """Enhanced health check including NAS connectivity"""
+    nas_status = await check_nas_connectivity()
+    
     return {
         "status": "healthy", 
         "timestamp": datetime.now(timezone.utc),
         "features": [
             "Google OAuth",
-            "Age Verification",
+            "Age Verification", 
             "Email Verification",
             "Password Reset",
-            "Session Management"
-        ]
+            "Session Management",
+            "NAS Vault Storage"
+        ],
+        "nas_vault": nas_status
     }
 
 # Include the router in the main app
