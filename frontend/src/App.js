@@ -244,8 +244,11 @@ const AuthForm = () => {
       if (!result.success) {
         setError(result.error);
       } else {
-        // Login successful - user will be redirected by ProtectedRoute
+        // Login successful - redirect to dashboard
         setSuccess("Login successful! Redirecting...");
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
       }
     } else if (authMode === "forgot") {
       const result = await forgotPassword(email);
