@@ -436,6 +436,7 @@ const StatusDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [newClientName, setNewClientName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeView, setActiveView] = useState('dashboard'); // Add view state
   const { user, logout, token } = useAuth();
 
   const fetchStatusChecks = async () => {
