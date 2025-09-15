@@ -231,6 +231,9 @@ const AuthForm = () => {
       const result = await register(username, email, password, dateOfBirth);
       if (!result.success) {
         setError(result.error);
+      } else {
+        // Registration successful - user will be redirected by ProtectedRoute
+        setSuccess("Registration successful! Redirecting...");
       }
     } else if (authMode === "login") {
       const result = await login(email, password);
