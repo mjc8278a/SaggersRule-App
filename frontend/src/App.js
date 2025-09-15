@@ -233,8 +233,11 @@ const AuthForm = () => {
       if (!result.success) {
         setError(result.error);
       } else {
-        // Registration successful - user will be redirected by ProtectedRoute
+        // Registration successful - redirect to dashboard
         setSuccess("Registration successful! Redirecting...");
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
       }
     } else if (authMode === "login") {
       const result = await login(email, password);
