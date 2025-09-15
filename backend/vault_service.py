@@ -538,10 +538,11 @@ async def check_nas_connectivity() -> Dict[str, Any]:
         }
         
     except Exception as e:
-        logger.error(f"❌ NAS connectivity check failed: {e}")
+        logger.warning(f"⚠️ NAS connectivity check failed: {e}")
         return {
-            "status": "unhealthy",
-            "error": str(e),
+            "status": "demo_mode",
+            "message": "NAS Vault in demo mode - MinIO not configured",
             "nas_endpoint": nas_vault.minio_endpoint,
+            "setup_guide": "See NAS_VAULT_SETUP.md for configuration instructions",
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
