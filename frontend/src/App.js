@@ -550,78 +550,86 @@ const StatusDashboard = () => {
           </div>
         </div>
 
-        {/* Status Upload Form */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-8 border border-gray-700">
-          <h2 className="text-xl font-semibold mb-4 text-blue-400">Create Status Check</h2>
-          <form onSubmit={createStatusCheck} className="flex gap-4">
-            <input
-              type="text"
-              value={newClientName}
-              onChange={(e) => setNewClientName(e.target.value)}
-              placeholder="Enter client/service name..."
-              className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isSubmitting}
-            />
-            <button
-              type="submit"
-              disabled={isSubmitting || !newClientName.trim()}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
-            >
-              {isSubmitting ? "Uploading..." : "Upload Status"}
-            </button>
-          </form>
-        </div>
-
-        {/* Status Checks Display */}
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-blue-400">Your Status Checks</h2>
-            <button
-              onClick={fetchStatusChecks}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium transition-colors"
-            >
-              Refresh
-            </button>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="mt-4 text-gray-400">Loading your status checks...</p>
-            </div>
-          ) : statusChecks.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-400 text-lg">No status checks yet</p>
-              <p className="text-gray-500">Create your first status check above!</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {statusChecks.map((check) => (
-                <div
-                  key={check.id}
-                  className="bg-gray-700 rounded-lg p-4 border border-gray-600 hover:border-blue-500 transition-colors"
+        {/* Main Content */}
+        {activeView === 'dashboard' ? (
+          <>
+            {/* Status Upload Form */}
+            <div className="bg-gray-800 rounded-lg p-6 mb-8 border border-gray-700">
+              <h2 className="text-xl font-semibold mb-4 text-blue-400">Create Status Check</h2>
+              <form onSubmit={createStatusCheck} className="flex gap-4">
+                <input
+                  type="text"
+                  value={newClientName}
+                  onChange={(e) => setNewClientName(e.target.value)}
+                  placeholder="Enter client/service name..."
+                  className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !newClientName.trim()}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold text-lg text-white">
-                        {check.client_name}
-                      </h3>
-                      <p className="text-gray-400 text-sm">ID: {check.id}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="bg-green-500 text-green-100 px-3 py-1 rounded-full text-sm font-medium">
-                        ✓ Active
-                      </div>
-                      <p className="text-gray-400 text-sm mt-1">
-                        {formatTimestamp(check.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  {isSubmitting ? "Uploading..." : "Upload Status"}
+                </button>
+              </form>
             </div>
-          )}
-        </div>
+
+            {/* Status Checks Display */}
+            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-blue-400">Your Status Checks</h2>
+                <button
+                  onClick={fetchStatusChecks}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium transition-colors"
+                >
+                  Refresh
+                </button>
+              </div>
+
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                  <p className="mt-4 text-gray-400">Loading your status checks...</p>
+                </div>
+              ) : statusChecks.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-400 text-lg">No status checks yet</p>
+                  <p className="text-gray-500">Create your first status check above!</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {statusChecks.map((check) => (
+                    <div
+                      key={check.id}
+                      className="bg-gray-700 rounded-lg p-4 border border-gray-600 hover:border-blue-500 transition-colors"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-lg text-white">
+                            {check.client_name}
+                          </h3>
+                          <p className="text-gray-400 text-sm">ID: {check.id}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="bg-green-500 text-green-100 px-3 py-1 rounded-full text-sm font-medium">
+                            ✓ Active
+                          </div>
+                          <p className="text-gray-400 text-sm mt-1">
+                            {formatTimestamp(check.timestamp)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          /* NAS Vault View */
+          <NASVaultManager />
+        )}
 
         {/* Footer */}
         <div className="text-center mt-8 text-gray-500">
