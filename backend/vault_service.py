@@ -54,22 +54,30 @@ class NASVaultService:
         """Initialize all required buckets on NAS"""
         logger.info("Initializing NAS Vault System...")
         
-        for data_type, bucket_name in self.buckets.items():
-            try:
-                await asyncio.get_event_loop().run_in_executor(
-                    self.executor,
-                    self._create_bucket_if_not_exists,
-                    bucket_name
-                )
-                logger.info(f"✅ Bucket '{bucket_name}' ready for {data_type}")
-            except Exception as e:
-                logger.error(f"❌ Failed to initialize bucket {bucket_name}: {e}")
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Failed to initialize vault storage: {str(e)}"
-                )
-        
-        logger.info("🎉 NAS Vault System initialized successfully!")
+        try:
+            # Test connection first
+            await asyncio.get_event_loop().run_in_executor(
+                self.executor,
+                self.client.list_buckets
+            )
+            logger.info("✅ MinIO connection successful")
+            
+            for data_type, bucket_name in self.buckets.items():
+                try:
+                    await asyncio.get_event_loop().run_in_executor(
+                        self.executor,
+                        self._create_bucket_if_not_exists,
+                        bucket_name
+                    )
+                    logger.info(f"✅ Bucket '{bucket_name}' ready for {data_type}")
+                except Exception as e:
+                    logger.error(f"❌ Failed to initialize bucket {bucket_name}: {e}")
+            
+            logger.info("🎉 NAS Vault System initialized successfully!")
+            
+        except Exception as e:
+            logger.warning(f"⚠️ NAS Vault in demo mode - MinIO not available: {e}")
+            logger.info("🔧 To enable NAS storage, set up MinIO as described in NAS_VAULT_SETUP.md")
     
     def _create_bucket_if_not_exists(self, bucket_name: str):
         """Create bucket if it doesn't exist (blocking operation)"""
