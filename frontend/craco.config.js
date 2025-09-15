@@ -9,6 +9,8 @@ const config = {
 module.exports = {
   devServer: {
     port: 3200,
+    host: '0.0.0.0',
+    allowedHosts: 'all',
   },
   webpack: {
     alias: {
