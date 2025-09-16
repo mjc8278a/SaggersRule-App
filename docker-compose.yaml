@@ -1,0 +1,125 @@
+version: "3.8"
+
+services:
+  # Media Processing Service
+  media-processor:
+    image: python:3.11-slim
+    container_name: saggersrule-media-processor
+    restart: unless-stopped
+    environment:
+      - TZ=America/New_York
+    volumes:
+      - ./media-storage:/app/media
+      - ./processed-media:/app/processed
+      - ./media-processor:/app/processor
+      - ./logs:/app/logs
+    working_dir: /app/processor
+    command: >
+      sh -c "
+        pip install --no-cache-dir Pillow requests aiofiles &&
+        python media_processor.py
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import os; exit(0 if os.path.exists(\"/app/media/uploads\") else 1)'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - saggersrule-network
+
+  # Media API Service (Upload API) - Updated for port 3200
+  media-api:
+    image: node:18-alpine
+    container_name: saggersrule-media-api
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - UPLOAD_PATH=/app/media/uploads
+      - PROCESSED_PATH=/app/processed
+      - MAX_FILE_SIZE=104857600
+      - ALLOWED_EXTENSIONS=jpg,jpeg,png,gif,webp,mp4,mov,avi
+    volumes:
+      - ./media-api:/app/src
+      - ./media-storage:/app/media
+      - ./processed-media:/app/processed
+    ports:
+      - "3200:3001"  # Updated: External port 3200 maps to internal port 3001
+    expose:
+      - "3001"
+    command: >
+      sh -c "
+        apk add --no-cache curl &&
+        npm init -y >/dev/null 2>&1 &&
+        npm install --silent express multer cors helmet &&
+        node src/server.js
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    depends_on:
+      - redis
+    networks:
+      - saggersrule-network
+
+  # Redis for processing queue
+  redis:
+    image: redis:7-alpine
+    container_name: saggersrule-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    expose:
+      - "6379"
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - saggersrule-network
+
+  # Nginx for serving media files
+  nginx:
+    image: nginx:alpine
+    container_name: saggersrule-nginx
+    restart: unless-stopped
+    volumes:
+      - ./processed-media:/usr/share/nginx/html/media:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "3036:80"
+    expose:
+      - "80"
+    command: >
+      sh -c "
+        apk add --no-cache curl &&
+        nginx -g 'daemon off;'
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - media-api
+    networks:
+      - saggersrule-network
+
+networks:
+  saggersrule-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis-data:
+    driver: local
