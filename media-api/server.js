@@ -7,7 +7,7 @@ const fs = require('fs').promises;
 const crypto = require('crypto');
 
 const app = express();
-const port = process.env.PORT || 3001; // CORRECTED: Default to 3001, not 3200
+const port = process.env.PORT || 3200; // CORRECTED: Default to 3200
 
 console.log('🚀 Starting SaggersRule Media API - Port 3200 Setup');
 console.log(`📡 Server will bind to internal port: ${port}`);
