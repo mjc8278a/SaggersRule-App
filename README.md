@@ -149,10 +149,21 @@ A complete full-stack media management application with React frontend, Node.js 
 ```
 /volume1/docker/SaggersRule/
 ├── docker-compose.yml      # Main deployment file
+├── frontend/              # React frontend application
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── nginx.conf
+│   ├── public/
+│   └── src/
+│       ├── components/    # React components
+│       ├── pages/        # Page components
+│       └── services/     # API services
 ├── media-api/             # Node.js API service
 │   ├── Dockerfile
 │   ├── package.json
 │   └── src/
+│       ├── server.js
+│       └── routes/
 ├── nginx/                 # Nginx configuration
 │   └── conf.d/
 │       └── default.conf
