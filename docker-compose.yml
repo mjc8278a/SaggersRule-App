@@ -1,6 +1,25 @@
 version: '3.8'
 
 services:
+  # React Frontend
+  frontend:
+    build: ./frontend
+    container_name: saggersrule-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - media-api
+      - media-server
+    networks:
+      - saggersrule-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # Node.js Media API
   media-api:
     build: ./media-api
     container_name: saggersrule-media-api
@@ -15,8 +34,9 @@ services:
       - UPLOAD_PATH=/app/media
       - PROCESSED_PATH=/app/processed
       - REDIS_URL=redis://redis:6379
-      - ALLOWED_EXTENSIONS=jpg,jpeg,png,gif,webp,mp4,mov,avi
+      - ALLOWED_EXTENSIONS=jpg,jpeg,png,gif,webp,mp4,mov,avi,mkv,flv,wmv,m4v
       - MAX_FILE_SIZE=104857600
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:3036
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3200/health"]
       interval: 30s
@@ -28,6 +48,7 @@ services:
     networks:
       - saggersrule-network
 
+  # Nginx Media Server
   media-server:
     image: nginx:alpine
     container_name: saggersrule-media-server
@@ -47,11 +68,15 @@ services:
     networks:
       - saggersrule-network
 
+  # Redis Cache
   redis:
     image: redis:alpine
     container_name: saggersrule-redis
     ports:
       - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
@@ -68,3 +93,4 @@ networks:
 volumes:
   media-storage:
   processed-media:
+  redis-data:
