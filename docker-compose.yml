@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  media-api:
+    build: ./media-api
+    container_name: saggersrule-media-api
+    ports:
+      - "3200:3200"
+    volumes:
+      - ./media-storage:/app/media/uploads
+      - ./processed-media:/app/processed
+    environment:
+      - NODE_ENV=production
+      - PORT=3200
+      - UPLOAD_PATH=/app/media/uploads
+      - PROCESSED_PATH=/app/processed
+      - REDIS_URL=redis://redis:6379
+      - ALLOWED_EXTENSIONS=jpg,jpeg,png,gif,webp,mp4,mov,avi
+      - MAX_FILE_SIZE=104857600
+    depends_on:
+      - redis
+    networks:
+      - saggersrule-network
+
+  media-server:
+    image: nginx:alpine
+    container_name: saggersrule-media-server
+    ports:
+      - "3036:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./media-storage:/var/www/media
+    depends_on:
+      - media-api
+    networks:
+      - saggersrule-network
+
+  redis:
+    image: redis:alpine
+    container_name: saggersrule-redis
+    ports:
+      - "6333:6379"  # Host port for debugging
+    networks:
+      - saggersrule-network
+
+networks:
+  saggersrule-network:
+    driver: bridge
+
+volumes:
+  media-storage:
+  processed-media:
