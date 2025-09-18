@@ -22,15 +22,40 @@ A complete full-stack media management application with React frontend, Node.js 
 
 ## Features
 
-- ✅ File upload handling (images & videos)
-- ✅ Static file serving via Nginx with optimized caching
-- ✅ Redis for caching/queuing
-- ✅ Comprehensive health checks for all services
-- ✅ Support for multiple media formats
-- ✅ 100MB max file size limit
-- ✅ Docker Compose deployment with proper networking
-- ✅ CORS support for cross-origin requests
-- ✅ Production-ready error handling
+- ✅ **Modern React Frontend** - Intuitive drag & drop interface
+- ✅ **File upload handling** - Images & videos with progress tracking
+- ✅ **Media Gallery** - Visual gallery with preview and download
+- ✅ **System Monitoring** - Real-time health checks and status
+- ✅ **Static file serving** via Nginx with optimized caching
+- ✅ **Redis** for caching/queuing
+- ✅ **Comprehensive health checks** for all services
+- ✅ **Support for multiple media formats**
+- ✅ **100MB+ max file size** (configurable)
+- ✅ **Docker Compose deployment** with proper networking
+- ✅ **CORS support** for cross-origin requests
+- ✅ **Production-ready** error handling and validation
+
+## User Interface
+
+### 📤 Upload Page
+- Drag & drop file uploads
+- Multiple file selection
+- Upload progress tracking
+- File validation and preview
+- Recent uploads display
+
+### 🖼️ Gallery Page  
+- Visual media gallery
+- Image/video previews
+- Modal view with download
+- File information display
+
+### ⚙️ Settings Page
+- System health monitoring
+- API status and uptime
+- Memory usage tracking
+- Configuration details
+- Network information
 
 ## Supported File Types
 
