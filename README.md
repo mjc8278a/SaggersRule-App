@@ -1,9 +1,11 @@
-# SaggersRule Media Stack V2.0
+# SaggersRule Media Management System V2.0
 
-A production-ready Docker-based media processing and serving stack with Node.js API, Nginx static file server, and Redis caching.
+A complete full-stack media management application with React frontend, Node.js API, Nginx media server, and Redis caching - designed for NAS deployment.
 
 ## 🚀 What's New in V2.0
 
+- ✅ **Complete Full-Stack Application** - React frontend + Node.js backend
+- ✅ **Modern React UI** - Drag & drop uploads, gallery view, system monitoring
 - ✅ **Fixed Docker networking** - All containers properly connected
 - ✅ **Corrected Nginx configuration** - Proper DNS resolver and proxy routing
 - ✅ **Enhanced health checks** - Comprehensive monitoring for all services
@@ -13,6 +15,7 @@ A production-ready Docker-based media processing and serving stack with Node.js 
 
 ## Architecture
 
+- **Frontend** (React) - Port 3000: Modern web interface for media management
 - **Media API** (Node.js/Express) - Port 3200: Handles file uploads and processing
 - **Media Server** (Nginx) - Port 3036: Serves static files and proxies API requests
 - **Redis** - Port 6379: Caching and job queuing
