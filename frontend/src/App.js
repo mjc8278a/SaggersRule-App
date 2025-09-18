@@ -1,53 +1,61 @@
-import { useEffect } from "react";
-import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Header from './components/Header';
+import UploadPage from './pages/UploadPage';
+import GalleryPage from './pages/GalleryPage';
+import SettingsPage from './pages/SettingsPage';
+import { ApiService } from './services/api';
+import './App.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+function App() {
+  const [apiStatus, setApiStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-const Home = () => {
-  const helloWorldApi = async () => {
+  useEffect(() => {
+    checkApiStatus();
+  }, []);
+
+  const checkApiStatus = async () => {
     try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+      const status = await ApiService.getHealth();
+      setApiStatus(status);
+    } catch (error) {
+      console.error('API connection failed:', error);
+      setApiStatus({ status: 'error', message: 'API connection failed' });
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner"></div>
+        <p>Connecting to SaggersRule Media API...</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+    <Router>
+      <div className="app">
+        <Header apiStatus={apiStatus} onRefreshStatus={checkApiStatus} />
+        
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<UploadPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/settings" element={<SettingsPage apiStatus={apiStatus} />} />
+          </Routes>
+        </main>
 
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
+        <footer className="footer">
+          <div className="container">
+            <p>&copy; 2024 SaggersRule Media Manager V2.0 - Built for NAS deployment</p>
+          </div>
+        </footer>
+      </div>
+    </Router>
   );
 }
 
