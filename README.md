@@ -138,6 +138,7 @@ A complete full-stack media management application with React frontend, Node.js 
 
 ## URLs
 
+- **Frontend Web Interface:** `http://localhost:3000/`
 - **API Direct Access:** `http://localhost:3200/`
 - **API via Nginx:** `http://localhost:3036/api/`
 - **Static Content:** `http://localhost:3036/media/`
