@@ -1,5 +1,8 @@
 FROM node:18-alpine
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 WORKDIR /app
 
 # Copy package files
@@ -12,9 +15,9 @@ RUN npm ci --only=production
 COPY src/ ./src/
 
 # Create directories for uploads and processed files
-RUN mkdir -p /app/media/uploads /app/processed
+RUN mkdir -p /app/media /app/processed
 
-# Set permissions
+# Set proper permissions
 RUN chown -R node:node /app
 USER node
 
